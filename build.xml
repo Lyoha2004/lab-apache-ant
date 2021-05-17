@@ -1,0 +1,191 @@
+<?xml version="1.0"?>
+<project name="client.LabApacheAnt" default="build">
+
+    <!-- define names of directories -->
+    <property name="src" location="src"/>
+    <property name="test" location="test/"/>
+    <property name="lib" location="lib/"/>
+    <property name="doc" location="doc/"/>
+    <property name="res" location="${src}/res/"/>
+    <property name="native" location="${res}/native/"/>
+    <property name="build" location="build"/>
+    <property name="classes" location="${build}/classes"/>
+    <property name="jar" location="${build}/${ant.project.name}.jar" />
+    <property name="diff.file" location="diff.txt" />
+
+    <!-- Добавляем определение математических операций -->
+    <macrodef name="math">
+        <attribute name="operation"/>
+        <attribute name="operator1"/>
+        <attribute name="operator2"/>
+        <attribute name="result"/>
+
+        <!-- Определение математических операций -->
+        <sequential>
+            <script language="javascript">
+                tmp = 0;
+                switch ("@{operation}") {
+                case "+" :
+                tmp = parseInt("@{operator1}") + parseInt("@{operator2}");
+                break;
+                case "-" :
+                tmp = parseInt("@{operator1}") - parseInt("@{operator2}");
+                break;
+                case "*" :
+                tmp = parseInt("@{operator1}") * parseInt("@{operator2}");
+                break;
+                case "/" :
+                tmp = parseInt("@{operator1}") / parseInt("@{operator2}");
+                break;
+                }
+                project.setProperty("@{result}", tmp);
+            </script>
+        </sequential>
+    </macrodef>
+
+    <!-- define all targets -->
+    <!-- Компиляция исходных кодов проекта -->
+    <target name="compile">
+        <mkdir dir="${classes}"/>
+        <!-- Копирование файлов ресурсов -->
+        <copy todir="${classes}/res">
+            <fileset dir="${src}/res" />
+        </copy>
+        <javac srcdir="${src}" destdir="${classes}" includeAntRuntime="false" errorproperty="compile.failed" failonerror="no" updatedproperty="compile.success" />
+    </target>
+
+    <!-- Запуск скомпилированного проекта -->
+    <target name="run" depends="compile">
+        <java classname="${ant.project.name}" classpath="${classes}"/>
+    </target>
+
+    <!-- Компиляция и упаковка проекта в jar-архив -->
+    <target name="build" depends="compile" unless="compile.failed">
+        <jar destfile="${build}/${ant.project.name}.jar" basedir="${classes}" excludes="**/*Test*">
+            <manifest>
+                <attribute name="Main-Class" value="${ant.project.name}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="clean">
+        <delete dir="${build}"/>
+        <delete dir="src/res/native"/>
+    </target>
+
+    <!-- Запускает unit-тесты -->
+    <target name="test" depends="compile" unless="compile.failed">
+        <javac srcdir="${test}" destdir="${classes}" includeAntRuntime="true" errorproperty="compile.failed" failonerror="no">
+            <!-- указываем необходимые библиотеки для тестирования -->
+            <classpath>
+                <pathelement path="${lib}/junit-4.13.2.jar"/>
+                <pathelement path="${lib}/hamcrest-core-1.3.jar"/>
+            </classpath>
+        </javac>
+        <junit haltonfailure="no" fork="true">
+            <formatter type="plain" usefile="false" />
+            <classpath>
+                <pathelement location="${lib}/junit-4.13.2.jar" />
+                <pathelement location="${lib}/ant-junit4-1.10.10.jar" />
+                <pathelement location="${lib}/hamcrest-core-1.3.jar" />
+                <pathelement location="${classes}"/>
+            </classpath>
+            <batchtest>
+                <fileset dir="${classes}">
+                    <include name="**/*Test*"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
+    <!-- Преобразование native2ascii для копий файлов локализации -->
+    <target name="native2ascii">
+        <native2ascii encoding="UTF-8" src="${res}" dest="${native}"/>
+    </target>
+
+    <!-- Создаёт документацию и подписывает файлы проекта -->
+    <target name="doc" depends="build">
+        <!-- Если нет ключа, нужно раскомментировать и запустить-->
+        <!--        <genkey alias="apache-group" storepass="secret"-->
+        <!--                dname="CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US"/>-->
+
+        <!-- Подписываем файлы проекта -->
+        <signjar jar="${jar}" alias="apache-group" storepass="secret" digestalg="MD5" force="true"/>
+        <signjar jar="${jar}" alias="apache-group" storepass="secret" digestalg="SHA1" force="true"/>
+
+        <mkdir dir="${doc}"/>
+        <javadoc sourcepath="${src}" destdir="${doc}"/>
+    </target>
+
+    <!-- Цель, необходимая для рекурсивного вызова get-last-compile-version -->
+    <target name="call-target">
+        <antcall target="get-last-compile-version" />
+    </target>
+
+    <!-- Удаляет локальные изменения -->
+    <target name="revert-changes">
+        <exec executable="svn">
+            <arg value="revert" />
+            <arg value="." />
+            <arg value="--recursive" />
+        </exec>
+    </target>
+
+    <!-- Возвращает проект к последней компилируемой ревизии -->
+    <target name="get-last-compile-version" depends="compile" unless="compile.success" if="compile.failed">
+        <antcall target="revert-changes" />
+        <exec executable="svnversion" outputproperty="svnversion" />
+
+        <!--        <property name="reverted" value="true" />-->
+
+        <!-- Получаем предыдущую версию -->
+        <math operation="-" operator1="${svnversion}" operator2="1" result="svnversion"/>
+
+        <!-- Загружаем предыдущую версию -->
+        <exec executable="svn">
+            <arg value="checkout" />
+            <arg value="-r${svnversion}" />
+            <arg value="http://pixelplace.ru/svn/lab-apache-ant/trunk" />
+            <arg value="." />
+        </exec>
+
+        <condition property="first-version">
+            <equals arg1="1" arg2="${svnversion}" />
+        </condition>
+        <condition property="reverted">
+            <isfalse value="first-version" />
+        </condition>
+
+        <!-- Удаляем скомпилированные файлы, чтобы можно было скомпилировать заново -->
+        <antcall target="clean" />
+        <antcall target="call-target" />
+
+    </target>
+
+    <!-- Возвращает проект к последней компилируемой ревизии и сохраняет diff между компилируемой ревизией
+         и ревизией, идущей за ней, в diff.txt -->
+    <target name="history" depends="get-last-compile-version" if="reverted">
+        <!-- Чтобы сработал вызов get-last-compile-version -->
+        <antcall target="clean" />
+
+        <exec executable="svnversion" outputproperty="my-revision" />
+        <exec executable="svnversion" outputproperty="previous-revision" />
+
+        <!-- Убираем модификаторы версии -->
+        <math operation="-" operator1="${my-revision}" operator2="1" result="my-revision"/>
+        <math operation="+" operator1="${my-revision}" operator2="1" result="my-revision"/>
+
+        <!-- Получаем предыдущую ревизию -->
+        <math operation="-" operator1="${previous-revision}" operator2="1" result="previous-revision"/>
+
+        <echo message="My revision: ${my-revision}    Previous revision: ${previous-revision}" />
+
+        <!-- Записываем diff -->
+        <exec executable="svn" output="${diff.file}">
+            <arg value="diff" />
+            <arg value="-r${previous-revision}:${my-revision}" />
+            <arg value="http://pixelplace.ru/svn/lab-apache-ant/trunk" />
+        </exec>
+    </target>
+
+</project>

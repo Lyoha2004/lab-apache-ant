@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <testsuites>
-  <testsuite errors="0" failures="0" hostname="localhost" id="0" name="ShotTest" package="" skipped="0" tests="6" time="7.369" timestamp="2021-05-18T16:09:02">
+  <testsuite errors="0" failures="0" hostname="localhost" id="0" name="ShotTest" package="" skipped="0" tests="6" time="4.337" timestamp="2021-05-19T10:51:01">
       <properties>
           <property name="reports" value="reports/" />
 
@@ -42,7 +42,7 @@
 
           <property name="res" value="src//res/" />
 
-          <property name="sun.java.command" value="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner ShotTest skipNonTests=false filtertrace=true haltOnError=false haltOnFailure=false showoutput=false outputtoformatters=true logfailedtests=true threadid=0 logtestlistenerevents=false formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,/root/lab-apache-ant/reports/TEST-ShotTest.xml crashfile=/root/lab-apache-ant/junitvmwatcher11045092302482880802.properties propsfile=/root/lab-apache-ant/junit15592161753740540946.properties" />
+          <property name="sun.java.command" value="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner ShotTest skipNonTests=false filtertrace=true haltOnError=false haltOnFailure=false showoutput=false outputtoformatters=true logfailedtests=true threadid=0 logtestlistenerevents=false formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,/root/lab-apache-ant/reports/TEST-ShotTest.xml crashfile=/root/lab-apache-ant/junitvmwatcher659797774444322417.properties propsfile=/root/lab-apache-ant/junit15236129251550823718.properties" />
 
           <property name="jdk.debug" value="release" />
 
@@ -150,17 +150,17 @@
 
       </properties>
 
-      <testcase classname="ShotTest" name="testZeroRadius" time="0.456" />
+      <testcase classname="ShotTest" name="testZeroRadius" time="0.374" />
 
-      <testcase classname="ShotTest" name="testThirdQuarter" time="1.858" />
+      <testcase classname="ShotTest" name="testThirdQuarter" time="1.168" />
 
-      <testcase classname="ShotTest" name="testFourthQuarter" time="0.196" />
+      <testcase classname="ShotTest" name="testFourthQuarter" time="0.273" />
 
-      <testcase classname="ShotTest" name="testSecondQuarter" time="0.199" />
+      <testcase classname="ShotTest" name="testSecondQuarter" time="0.163" />
 
-      <testcase classname="ShotTest" name="testNegativeRadius" time="0.026" />
+      <testcase classname="ShotTest" name="testNegativeRadius" time="0.014" />
 
-      <testcase classname="ShotTest" name="testFirstQuarter" time="0.073" />
+      <testcase classname="ShotTest" name="testFirstQuarter" time="0.101" />
 
       <system-out><![CDATA[]]></system-out>
 
